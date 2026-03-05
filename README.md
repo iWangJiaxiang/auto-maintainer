@@ -71,6 +71,9 @@ auto-maintainer --dry-run
 
 # 3. Ready to roll, let the AI work for you!
 auto-maintainer
+
+# 4. (Optional) Run continuously as a daemon, polling every minute
+auto-maintainer --loop
 ```
 
 ---

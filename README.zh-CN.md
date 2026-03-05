@@ -70,6 +70,9 @@ auto-maintainer --dry-run
 
 # 3. 准备就绪，让 AI 替你打工！
 auto-maintainer
+
+# 4. (可选) 持续后台运行，每分钟自动轮询新 Issue
+auto-maintainer --loop
 ```
 
 ---

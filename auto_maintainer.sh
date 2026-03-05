@@ -46,6 +46,7 @@ REPO=""                        # Populated by detect_repo()
 REPO_DIR=""                    # Populated by init_repo_dir()
 VERBOSE=false
 DRY_RUN=false
+LOOP_MODE=false
 CONFIG_FILE=""
 LOCK_FILE=""
 QUOTA_RESET_TIME=""
@@ -675,8 +676,14 @@ run() {
     issues_output=$(fetch_issues) || die "Failed to fetch issues from GitHub."
 
     if [[ -z "$issues_output" ]]; then
-      log INFO "No matching open issues. Done."
-      break
+      if [[ "$LOOP_MODE" == "true" ]]; then
+        log INFO "No matching open issues. Waiting 60s before next check..."
+        sleep 60
+        continue
+      else
+        log INFO "No matching open issues. Done."
+        break
+      fi
     fi
 
     # ── Dry-run: print and exit
@@ -794,6 +801,7 @@ ${BOLD}Options:${NC}
   -c, --config FILE   Config file  (default: ~/.config/auto-maintainer/config.sh)
   -n, --dry-run       List matching issues; make no changes
   -q, --quota  PCT    Override initial quota % for manual checker
+  -l, --loop          Wait 1 minute and re-check instead of exiting when no issues are found
   -v, --verbose       Show debug output
   -h, --help          Show this help
   -V, --version       Print version
@@ -824,6 +832,7 @@ parse_args() {
       -c|--config)  CONFIG_FILE="$2";    shift 2 ;;
       -n|--dry-run) DRY_RUN=true;        shift   ;;
       -q|--quota)   quota_override="$2"; shift 2 ;;
+      -l|--loop)    LOOP_MODE=true;      shift   ;;
       -v|--verbose) VERBOSE=true;        shift   ;;
       -h|--help)    usage; exit 0                ;;
       -V|--version) echo "${BIN_NAME} ${VERSION}"; exit 0 ;;
@@ -866,6 +875,7 @@ main() {
   log INFO "  Config  : ${CONFIG_FILE}"
   log INFO "  Branch  : ${PR_BASE_BRANCH}  merge: ${AUTO_MERGE_METHOD}"
   log INFO "  Quota   : pause below ${QUOTA_THRESHOLD}%"
+  [[ "$LOOP_MODE" == "true" ]] && log INFO "  Loop    : Wait 60s when idle"
   [[ "$DRY_RUN" == "true" ]] && log WARN "  DRY RUN — no changes will be made"
   [[ "$VERBOSE" == "true" ]] && log INFO "  Verbose logging enabled"
   printf "\n"
