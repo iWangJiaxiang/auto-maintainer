@@ -487,8 +487,9 @@ branch_exists_remote() {
 create_branch() {
   local branch="$1"
   retry 3 5  g fetch origin --quiet 2>/dev/null
-  g checkout -b "$branch" "origin/${PR_BASE_BRANCH}" --quiet
-  log DEBUG "Created branch '$branch' from origin/${PR_BASE_BRANCH}"
+  # Use -B to overwrite the local branch if it already exists from a previous run
+  g checkout -B "$branch" "origin/${PR_BASE_BRANCH}" --quiet
+  log DEBUG "Created/Reset branch '$branch' from origin/${PR_BASE_BRANCH}"
 }
 
 has_changes() { [[ -n "$(g status --porcelain)" ]]; }
