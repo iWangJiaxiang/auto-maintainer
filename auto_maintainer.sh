@@ -193,6 +193,7 @@ get_anthropic_api_key() {
   _read_json_field "$claude_settings" '.api_key'                && return 0
 
   # 3. ~/.claude/.credentials.json (some Claude Code versions)
+  _read_json_field "${HOME}/.claude/.credentials.json" '.claudeAiOauth.accessToken' && return 0
   _read_json_field "${HOME}/.claude/.credentials.json" '.apiKey'  && return 0
   _read_json_field "${HOME}/.claude/.credentials.json" '.api_key' && return 0
 
