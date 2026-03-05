@@ -147,8 +147,8 @@ detect_repo() {
   # Handles:  https://github.com/owner/repo[.git]
   #           git@github.com:owner/repo[.git]
   #           gh://github.com/owner/repo
-  if [[ "$url" =~ github\.com[:/]([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(\.git)?$ ]]; then
-    REPO="${BASH_REMATCH[1]}"
+  if [[ "$url" =~ github\.com[:/]([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)/?$ ]]; then
+    REPO="${BASH_REMATCH[1]%.git}"
     log DEBUG "Detected repo: $REPO  (from remote: $url)"
   else
     die "Cannot parse GitHub repo from remote URL: ${url}
