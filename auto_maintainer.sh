@@ -33,7 +33,7 @@ INCLUDE_LABELS=()              # Must match ≥1 label (OR logic); empty = all
 EXCLUDE_LABELS=()              # Skip issues that have any of these labels
 PRIORITY_LABELS=()             # Ordered high→low; earlier label = higher score
 QUOTA_THRESHOLD=30             # Pause when remaining quota % falls below this
-PR_BASE_BRANCH="main"
+PR_BASE_BRANCH=""              # Will be auto-detected if left empty
 AUTO_MERGE_METHOD="squash"     # squash | merge | rebase
 CI_TIMEOUT=1800                # Max seconds to wait for CI (default: 30 min)
 CI_POLL_INTERVAL=30            # Seconds between CI polls
@@ -156,6 +156,26 @@ detect_repo() {
     die "Cannot parse GitHub repo from remote URL: ${url}
 Supported formats: https://github.com/owner/repo  or  git@github.com:owner/repo
 Alternatively, set REPO=\"owner/repo\" in your config file."
+  fi
+}
+
+detect_base_branch() {
+  if [[ -n "${PR_BASE_BRANCH:-}" ]]; then
+    log DEBUG "PR_BASE_BRANCH set explicitly: $PR_BASE_BRANCH"
+    return 0
+  fi
+
+  # Try to auto-detect the default branch from the remote origin
+  local default_branch
+  default_branch=$(git -C "$REPO_DIR" remote show origin 2>/dev/null \
+    | awk '/HEAD branch/ {print $NF}')
+    
+  if [[ -n "$default_branch" ]]; then
+    PR_BASE_BRANCH="$default_branch"
+    log DEBUG "Auto-detected base branch: $PR_BASE_BRANCH"
+  else
+    PR_BASE_BRANCH="main"
+    log WARN "Could not auto-detect base branch, falling back to: $PR_BASE_BRANCH"
   fi
 }
 
@@ -883,8 +903,9 @@ parse_args() {
 
   [[ -n "$quota_override" ]] && MANUAL_QUOTA_PERCENT="$quota_override"
 
-  # Auto-detect repo AFTER config is loaded (config may set REPO explicitly)
+  # Auto-detect repo and base branch AFTER config is loaded
   detect_repo
+  detect_base_branch
 }
 
 # ─── Entry point ──────────────────────────────────────────────────────────────

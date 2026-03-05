@@ -120,7 +120,7 @@ MANUAL_QUOTA_RESET_HOURS=5      # 熔断后的自愈冷却时间 (Hours)
 CLAUDE_MAX_WEEKLY_USAGE=""      # 限制 7 日内最大可用额度比例 (%)，达标则休眠等待解封
 
 # ── CI & 自动化集成策略 ─────────────────────────────────────────────────────────────
-PR_BASE_BRANCH="main"           # 默认守卫的 Base 目标分支
+PR_BASE_BRANCH=""               # 留空则通过 'git remote show origin' 自动嗅探目标干线分支
 AUTO_MERGE_METHOD="squash"      # Github 兵器库: squash | merge | rebase
 CI_TIMEOUT=1800                 # CI 检测耐心上限 (30 分钟)
 CI_POLL_INTERVAL=30             # HTTP 轮询频次 (Seconds)

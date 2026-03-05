@@ -121,7 +121,7 @@ MANUAL_QUOTA_RESET_HOURS=5      # Healing cooldown (Hours) when quota hits limit
 CLAUDE_MAX_WEEKLY_USAGE=""      # Skip issue processing if 7-day usage percentage exceeds this
 
 # ── CI & Auto-Merge Strategies ────────────────────────────────────────────────────────
-PR_BASE_BRANCH="main"           # Base branch to guard
+PR_BASE_BRANCH=""               # Auto-detected via 'git remote show origin' unless explicitly set
 AUTO_MERGE_METHOD="squash"      # Github weapon of choice: squash | merge | rebase
 CI_TIMEOUT=1800                 # Max patience for CI (30 minutes)
 CI_POLL_INTERVAL=30             # Status poll frequency (Seconds)

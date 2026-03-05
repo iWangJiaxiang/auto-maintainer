@@ -55,7 +55,7 @@ MANUAL_QUOTA_PERCENT=100
 MANUAL_QUOTA_RESET_HOURS=5
 
 # ─── Git & PR ─────────────────────────────────────────────────────────────────
-PR_BASE_BRANCH="main"
+PR_BASE_BRANCH=""            # Auto-detected if empty (from 'git remote show origin')
 AUTO_MERGE_METHOD="squash"   # squash | merge | rebase
 
 # ─── CI ───────────────────────────────────────────────────────────────────────
