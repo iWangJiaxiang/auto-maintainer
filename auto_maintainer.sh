@@ -96,7 +96,7 @@ _cleanup() {
 }
 
 trap '_cleanup' EXIT
-trap 'log WARN "Interrupted — cleaning up."; exit 130' INT TERM HUP
+trap 'log WARN "Interrupted — cleaning up."; print_summary; exit 130' INT TERM HUP
 
 # ─── Lock file (prevents concurrent runs on the same repo) ───────────────────
 acquire_lock() {
@@ -251,29 +251,34 @@ check_claude_quota() {
   fi
   log DEBUG "Claude quota check using key: ${api_key:0:12}…"
 
-  local hfile; hfile=$(mktemp)
-  # A minimal 1-token request just to read the rate-limit headers
-  curl -sf -D "$hfile" \
-    -X POST "https://api.anthropic.com/v1/messages" \
-    -H "x-api-key: $api_key" \
-    -H "anthropic-version: 2023-06-01" \
-    -H "content-type: application/json" \
-    -d '{"model":"claude-haiku-4-5-20251001","max_tokens":1,"messages":[{"role":"user","content":"hi"}]}' \
-    -o /dev/null 2>/dev/null || true
-
-  local limit remaining
-  limit=$(     grep -i '^anthropic-ratelimit-tokens-limit:'     "$hfile" \
-               | awk '{print $2}' | tr -d '\r' | head -1)
-  remaining=$( grep -i '^anthropic-ratelimit-tokens-remaining:' "$hfile" \
-               | awk '{print $2}' | tr -d '\r' | head -1)
-  QUOTA_RESET_TIME=$(grep -i '^anthropic-ratelimit-tokens-reset:' "$hfile" \
-               | awk '{print $2}' | tr -d '\r' | head -1)
-  rm -f "$hfile"
+  local usage_json
+  usage_json=$(curl -s "https://api.anthropic.com/api/oauth/usage" \
+    -H "Authorization: Bearer $api_key" \
+    -H "anthropic-beta: oauth-2025-04-20" \
+    -H "anthropic-version: 2023-06-01") || true
 
   local pct=100
-  if [[ -n "${limit:-}" && "${limit:-0}" -gt 0 && -n "${remaining:-}" ]]; then
-    pct=$(( remaining * 100 / limit ))
+  if [[ -n "$usage_json" ]]; then
+    local utilization
+    # API gives utilization as a percentage eg 80.0
+    utilization=$(echo "$usage_json" | jq -r '.five_hour.utilization // empty' 2>/dev/null)
+    
+    if [[ -n "$utilization" && "$utilization" != "null" ]]; then
+      # Remaining percentage
+      pct=$(awk "BEGIN {
+        rem = 100.0 - $utilization
+        if (rem < 0) rem = 0
+        printf \"%.0f\", rem
+      }")
+    fi
+    
+    local resets_at
+    resets_at=$(echo "$usage_json" | jq -r '.five_hour.resets_at // empty' 2>/dev/null)
+    if [[ -n "$resets_at" && "$resets_at" != "null" ]]; then
+      QUOTA_RESET_TIME="$resets_at"
+    fi
   fi
+  
   _claude_cache_ts=$now
   _claude_cache_pct=$pct
   echo "$pct"
@@ -295,7 +300,7 @@ check_openai_quota() {
   log DEBUG "OpenAI quota check using key: ${api_key:0:12}…"
 
   local hfile; hfile=$(mktemp)
-  curl -sf -D "$hfile" \
+  curl -s -D "$hfile" \
     -H "Authorization: Bearer $api_key" \
     "https://api.openai.com/v1/models" \
     -o /dev/null 2>/dev/null || true
