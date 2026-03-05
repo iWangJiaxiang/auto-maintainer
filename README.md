@@ -118,6 +118,7 @@ PRIORITY_LABELS=("priority:critical" "priority:high" "priority:medium")
 QUOTA_THRESHOLD=30              # Sleeps when remaining API quota drops below this (%)
 MANUAL_QUOTA_PERCENT=100        # Safeguard fallback when API Key is undiscoverable
 MANUAL_QUOTA_RESET_HOURS=5      # Healing cooldown (Hours) when quota hits limit
+CLAUDE_MAX_WEEKLY_USAGE=""      # Skip issue processing if 7-day usage percentage exceeds this
 
 # ── CI & Auto-Merge Strategies ────────────────────────────────────────────────────────
 PR_BASE_BRANCH="main"           # Base branch to guard

@@ -43,6 +43,9 @@ PRIORITY_LABELS=(
 # Stop processing when remaining quota falls below this percentage.
 QUOTA_THRESHOLD=30
 
+# Skip issue processing completely if 7-day API utilization percentage exceeds this
+CLAUDE_MAX_WEEKLY_USAGE=""
+
 # Used when the API key cannot be found automatically (e.g. claude.ai Pro
 # session without an API key). Estimate your current remaining % or pass
 # --quota 65 at runtime to override.

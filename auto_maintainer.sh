@@ -40,6 +40,7 @@ CI_POLL_INTERVAL=30            # Seconds between CI polls
 MAX_ISSUES_PER_RUN=0           # 0 = unlimited
 MANUAL_QUOTA_PERCENT=100       # Assumed remaining % when no API key is found
 MANUAL_QUOTA_RESET_HOURS=5     # Hours until next reset (manual fallback)
+CLAUDE_MAX_WEEKLY_USAGE=""     # Skip issue loop if seven_day util % exceeds this
 
 # ─── Runtime state ────────────────────────────────────────────────────────────
 REPO=""                        # Populated by detect_repo()
@@ -276,6 +277,22 @@ check_claude_quota() {
     resets_at=$(echo "$usage_json" | jq -r '.five_hour.resets_at // empty' 2>/dev/null)
     if [[ -n "$resets_at" && "$resets_at" != "null" ]]; then
       QUOTA_RESET_TIME="$resets_at"
+    fi
+
+    local seven_util
+    seven_util=$(echo "$usage_json" | jq -r '.seven_day.utilization // empty' 2>/dev/null)
+    if [[ -n "${CLAUDE_MAX_WEEKLY_USAGE:-}" ]] && [[ -n "$seven_util" && "$seven_util" != "null" ]]; then
+      local skip_weekly
+      skip_weekly=$(awk "BEGIN { if ($seven_util >= ${CLAUDE_MAX_WEEKLY_USAGE}) print 1; else print 0 }")
+      if (( skip_weekly == 1 )); then
+        log WARN "Weekly usage (${seven_util}%) exceeded CLAUDE_MAX_WEEKLY_USAGE (${CLAUDE_MAX_WEEKLY_USAGE}%)"
+        pct=0
+        local seven_resets
+        seven_resets=$(echo "$usage_json" | jq -r '.seven_day.resets_at // empty' 2>/dev/null)
+        if [[ -n "$seven_resets" && "$seven_resets" != "null" ]]; then
+          QUOTA_RESET_TIME="$seven_resets"
+        fi
+      fi
     fi
   fi
   

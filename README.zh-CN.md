@@ -117,6 +117,7 @@ PRIORITY_LABELS=("priority:critical" "priority:high" "priority:medium")
 QUOTA_THRESHOLD=30              # 余量低于此阈值 (%) 时，挂起休眠
 MANUAL_QUOTA_PERCENT=100        # API Key 未探测到时的安全熔断值
 MANUAL_QUOTA_RESET_HOURS=5      # 熔断后的自愈冷却时间 (Hours)
+CLAUDE_MAX_WEEKLY_USAGE=""      # 限制 7 日内最大可用额度比例 (%)，达标则休眠等待解封
 
 # ── CI & 自动化集成策略 ─────────────────────────────────────────────────────────────
 PR_BASE_BRANCH="main"           # 默认守卫的 Base 目标分支
