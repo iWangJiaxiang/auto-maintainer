@@ -70,7 +70,7 @@ log() {
     OK)    printf "${DIM}%s${NC}  ${GREEN} OK ${NC}   %s\n"  "$ts" "$msg" ;;
     STEP)  printf "\n${BOLD}${CYAN}  ┄┄ %s${NC}\n"           "$msg" ;;
     DEBUG) [[ "$VERBOSE" == "true" ]] && \
-           printf "${DIM}%s  DBG    %s${NC}\n"               "$ts" "$msg" ;;
+           printf "${DIM}%s  DBG    %s${NC}\n"               "$ts" "$msg" || true ;;
   esac
 }
 
@@ -167,7 +167,7 @@ detect_base_branch() {
 
   # Try to auto-detect the default branch from the remote origin
   local default_branch
-  default_branch=$(git -C "$REPO_DIR" remote show origin 2>/dev/null \
+  default_branch=$(LC_ALL=C git -C "$REPO_DIR" remote show origin 2>/dev/null \
     | awk '/HEAD branch/ {print $NF}')
     
   if [[ -n "$default_branch" ]]; then
@@ -605,7 +605,7 @@ run_claude_code() {
   local key; key=$(get_anthropic_api_key)
   log INFO "Running Claude Code on issue #${num}…"
   if [[ -n "$key" ]]; then
-    ANTHROPIC_API_KEY="$key" claude --dangerously-skip-permissions \
+    ANTHROPIC_API_KEY="$key" IS_SANDBOX=1 claude --dangerously-skip-permissions \
       -p "$(_build_prompt "$num" "$title" "$body")"
   else
     claude --dangerously-skip-permissions \
